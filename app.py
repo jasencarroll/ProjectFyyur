@@ -79,7 +79,7 @@ class Show(db.Model):
     # get venue image
     start_time =  db.Column(db.String)
 
-class Genre(db.model):
+class Genre(db.Model):
     __tablename__ = 'Genre'
     
     id = db.Column(db.Integer, primary_key=True)

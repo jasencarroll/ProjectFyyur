@@ -20,7 +20,7 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean, default=False) 
     seeking_description = db.Column(db.String(500))
     # Define the relationship with the Show model
-    shows = db.relationship('Show', backref='venue', lazy=True)
+    shows = db.relationship('Show', backref='venue_shows', lazy=True)
     
     def __repr__(self): 
         return f'<Venue {self.id} {self.name}>' 
@@ -39,7 +39,7 @@ class Artist(db.Model):
     website_link = db.Column(db.String(120)) 
     seeking_venue = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500))
-    shows = db.relationship('Show', backref='artist', lazy=True) 
+    shows = db.relationship('Show', backref='artist_shows', lazy=True) 
 
     def __repr__(self):
         return f'<Artist {self.id} {self.name}>'
@@ -51,9 +51,6 @@ class Show(db.Model):
     artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
     start_time = db.Column(db.DateTime, nullable=False)
-
-    artist = db.relationship('Artist', backref=db.backref('shows', cascade='all, delete'))
-    venue = db.relationship('Venue', backref=db.backref('shows', cascade='all, delete'))
 
     def __repr__(self):
         return f'<Show {self.id} {self.artist_id} {self.venue_id} {self.start_time}>'

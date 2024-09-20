@@ -91,12 +91,18 @@ class VenueForm(FlaskForm):
     website_link = StringField(
         'website', validators=[Optional(), URL()]
     )
+    def boolean_coerce(value):
+        """Converts 'Yes' to True and 'No' to False."""
+        return value == 'Yes'
+
     seeking_talent = SelectField(
-        'seeking_talent', validators=[DataRequired()],
+        'seeking_talent', 
+        validators=[DataRequired()],
         choices=[
             ('Yes', 'Yes'),
             ('No', 'No')
-        ]
+        ],
+        coerce=boolean_coerce  # Apply the custom conversion
     )
     seeking_description = StringField(
         'seeking_description', validators=[Optional()]

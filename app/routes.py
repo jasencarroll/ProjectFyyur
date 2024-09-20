@@ -1,8 +1,10 @@
-from app import app
+from app import app, db
 import logging
 from logging import Formatter, FileHandler
+from sqlalchemy import func
 from flask import render_template, request, flash, redirect, url_for
 from .forms import *
+from .models import *
 
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -18,30 +20,39 @@ def index():
 
 @app.route('/venues')
 def venues():
-  # TODO: replace with real venues data.
-  #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
-  return render_template('pages/venues.html', areas=data);
+  # Fetch venues and count of upcoming shows
+  venues_data = db.session.query(Venue, func.count(Show.id).label('num_upcoming_shows')).\
+                outerjoin(Show, Show.venue_id == Venue.id).\
+                filter(Show.start_time > datetime.now()).\
+                group_by(Venue.id, Venue.name, Venue.city, Venue.state).\
+                all()
+
+  # Group venues by city and state
+  data = []
+  for venue, num_upcoming_shows in venues_data:
+    city_state_found = False
+    for area in data:
+      if area['city'] == venue.city and area['state'] == venue.state:
+        area['venues'].append({
+          'id': venue.id,
+          'name': venue.name,
+          'num_upcoming_shows': num_upcoming_shows
+        })
+        city_state_found = True
+        break
+
+    if not city_state_found:
+      data.append({
+        'city': venue.city,
+        'state': venue.state,
+        'venues': [{
+          'id': venue.id,
+          'name': venue.name,
+          'num_upcoming_shows': num_upcoming_shows
+        }]
+      })
+
+  return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -152,14 +163,51 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  form = VenueForm() 
 
-  # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+  if form.validate_on_submit(): 
+    try:
+      # Create a new Venue object with data from the form
+      new_venue = Venue(
+        name=form.name.data,
+        city=form.city.data,
+        state=form.state.data,
+        address=form.address.data,
+        phone=form.phone.data,
+        genres=','.join(form.genres.data),  # Convert list of genres to a comma-separated string
+        facebook_link=form.facebook_link.data,
+        image_link=form.image_link.data,
+        website_link=form.website_link.data,
+        seeking_talent=form.seeking_talent.data,
+        seeking_description=form.seeking_description.data
+      )
+
+      # Add the new venue to the database session
+      db.session.add(new_venue)
+
+      # Commit the changes to the database
+      db.session.commit()
+
+      # Flash a success message
+      flash('Venue ' + request.form['name'] + ' was successfully listed!')
+
+    except Exception as e:
+      # Roll back the session in case of an error
+      db.session.rollback()
+
+      # Flash an error message
+      flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed. Error: ' + str(e))
+
+    finally:
+      # Close the database session
+      db.session.close()
+
+  else:
+    # If form validation fails, flash error messages
+    for field, errors in form.errors.items():
+      for error in errors:
+        flash(f"Error in the {field} field: {error}")
+
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])

@@ -20,39 +20,22 @@ def index():
 
 @app.route('/venues')
 def venues():
-  # Fetch venues and count of upcoming shows
-  venues_data = db.session.query(Venue, func.count(Show.id).label('num_upcoming_shows')).\
-                outerjoin(Show, Show.venue_id == Venue.id).\
-                filter(Show.start_time > datetime.now()).\
-                group_by(Venue.id, Venue.name, Venue.city, Venue.state).\
-                all()
+    # Fetch all venues from the database
+    all_venues = Venue.query.all()
 
-  # Group venues by city and state
-  data = []
-  for venue, num_upcoming_shows in venues_data:
-    city_state_found = False
-    for area in data:
-      if area['city'] == venue.city and area['state'] == venue.state:
-        area['venues'].append({
-          'id': venue.id,
-          'name': venue.name,
-          'num_upcoming_shows': num_upcoming_shows
+    # Create a dictionary to organize venues by city and state
+    data = {}
+    for venue in all_venues:
+        key = (venue.city, venue.state)
+        data.setdefault(key, {'city': venue.city, 'state': venue.state, 'venues': []})
+        data[key]['venues'].append({
+            'id': venue.id,
+            'name': venue.name,
+            'num_upcoming_shows': len([show for show in venue.shows if show.start_time > datetime.now()])
         })
-        city_state_found = True
-        break
 
-    if not city_state_found:
-      data.append({
-        'city': venue.city,
-        'state': venue.state,
-        'venues': [{
-          'id': venue.id,
-          'name': venue.name,
-          'num_upcoming_shows': num_upcoming_shows
-        }]
-      })
-
-  return render_template('pages/venues.html', areas=data)
+    # Convert the dictionary values into a list for rendering
+    return render_template('pages/venues.html', areas=list(data.values()))
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -207,6 +190,7 @@ def create_venue_submission():
     for field, errors in form.errors.items():
       for error in errors:
         flash(f"Error in the {field} field: {error}")
+        return render_template('forms/new_venue.html', form=form)  # Re-render the form with data
 
   return render_template('pages/home.html')
 

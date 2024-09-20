@@ -9,6 +9,7 @@ from markupsafe import Markup
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
@@ -21,69 +22,53 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
-
-# TODO: connect to a local postgresql database
-
-#----------------------------------------------------------------------------#
-# Models.
-#----------------------------------------------------------------------------#
+migrate=Migrate(app, db)
 
 class Venue(db.Model):
     __tablename__ = 'Venue'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    address = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
-    seeking_talent = db.Column(db.Boolean)
-    image_link = db.Column(db.String)
-    # relationship to shows
+    id = db.Column(db.Integer, primary_key=True)  # Unique identifier for each venue
+    name = db.Column(db.String, nullable=False)  # Name of the venue
+    city = db.Column(db.String(120), nullable=False)  # City where the venue is located
+    state = db.Column(db.String(120), nullable=False)  # State where the venue is located
+    address = db.Column(db.String(120), nullable=False)  # Address of the venue
+    phone = db.Column(db.String(120))  # Phone number of the venue
+    image_link = db.Column(db.String(500))  # Link to an image of the venue
+    facebook_link = db.Column(db.String(120))  # Link to the venue's Facebook page
+    seeking_talent = db.Column(db.Boolean, default=False)  # If the venue is looking for talent
 
+    # Relationship to shows
+    shows = db.relationship('Show', backref='venue', lazy=True)  # Each venue can have multiple shows
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
-    seeking_venue = db.Column(db.Boolean)
-    image_link = db.Column(db.String)
-    # relationship to shows
+    id = db.Column(db.Integer, primary_key=True)  # Unique identifier for each artist
+    name = db.Column(db.String, nullable=False)  # Name of the artist
+    city = db.Column(db.String(120), nullable=False)  # City where the artist is located
+    state = db.Column(db.String(120), nullable=False)  # State where the artist is located
+    phone = db.Column(db.String(120))  # Phone number of the artist
+    genres = db.Column(db.String(120))  # Genres of the artist
+    image_link = db.Column(db.String(500))  # Link to an image of the artist
+    facebook_link = db.Column(db.String(120))  # Link to the artist's Facebook page
+    seeking_venue = db.Column(db.Boolean, default=False)  # If the artist is looking for a venue
 
+    # Relationship to shows
+    shows = db.relationship('Show', backref='artist', lazy=True)  # Each artist can have multiple shows
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
 class Show(db.Model):
     __tablename__ = 'Show'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), nullable=False)
-    # get artist name
-    # get artist image
-    venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable=False)
-    # get venue name
-    # get venue image
-    start_time =  db.Column(db.String)
+    id = db.Column(db.Integer, primary_key=True)  # Unique identifier for each show
+    name = db.Column(db.String, nullable=False)  # Name of the show
+    artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)  # Foreign key to the artist
+    venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)  # Foreign key to the venue
+    start_time = db.Column(db.String, nullable=False)  # Start time of the show
 
-class Genre(db.Model):
-    __tablename__ = 'Genre'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+    # Additional attributes can be added here as needed
+
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#

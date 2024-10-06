@@ -381,29 +381,91 @@ def edit_artist_submission(artist_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-  form = VenueForm()
-  venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-  }
-  # TODO: populate form with values from venue with ID <venue_id>
-  return render_template('forms/edit_venue.html', form=form, venue=venue)
+    # Query the venue by ID
+    venue = Venue.query.get(venue_id)
+    
+    if not venue:
+        flash(f"Venue with ID {venue_id} not found.", "danger")
+        return redirect(url_for('index'))  # Redirect to homepage or any other page
+
+    # Pre-populate the form with the venue's data
+    form = VenueForm(
+        name=venue.name,
+        genres=venue.genres.split(','),  # Assuming genres are stored as a comma-separated string
+        address=venue.address,
+        city=venue.city,
+        state=venue.state,
+        phone=venue.phone,
+        website=venue.website_link,
+        facebook_link=venue.facebook_link,
+        seeking_talent=venue.seeking_talent,
+        seeking_description=venue.seeking_description,
+        image_link=venue.image_link
+    )
+
+    # Prepare the venue data to pass to the template
+    venue_data = {
+        "id": venue.id,
+        "name": venue.name,
+        "genres": venue.genres.split(','),  # Convert genres string to a list
+        "address": venue.address,
+        "city": venue.city,
+        "state": venue.state,
+        "phone": venue.phone,
+        "website": venue.website_link,
+        "facebook_link": venue.facebook_link,
+        "seeking_talent": venue.seeking_talent,
+        "seeking_description": venue.seeking_description,
+        "image_link": venue.image_link
+    }
+
+    return render_template('forms/edit_venue.html', form=form, venue=venue_data)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing
-  # venue record with ID <venue_id> using the new attributes
-  return redirect(url_for('show_venue', venue_id=venue_id))
+    # Get the form data
+    form = VenueForm()
+
+    # Fetch the venue by ID
+    venue = Venue.query.get(venue_id)
+
+    if not venue:
+        flash(f"Venue with ID {venue_id} not found.", "danger")
+        return redirect(url_for('index'))  # Redirect to homepage or any other page
+
+    # Validate the form submission
+    if form.validate_on_submit():
+        try:
+            # Update the venue's attributes with the form data
+            venue.name = form.name.data
+            venue.city = form.city.data
+            venue.state = form.state.data
+            venue.address = form.address.data
+            venue.phone = form.phone.data
+            venue.genres = ','.join(form.genres.data)  # Assuming genres are stored as a comma-separated string
+            venue.facebook_link = form.facebook_link.data
+            venue.image_link = form.image_link.data
+            venue.website_link = form.website_link.data
+            venue.seeking_talent = form.seeking_talent.data
+            venue.seeking_description = form.seeking_description.data
+
+            # Commit the changes to the database
+            db.session.commit()
+            flash(f'Venue {venue.name} was successfully updated!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred while updating the venue. Error: {str(e)}', 'danger')
+
+    else:
+        # Flash form validation errors
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"Error in the {field} field: {error}", "danger")
+        # Re-render the form with the current data
+        return render_template('forms/edit_venue.html', form=form, venue=venue)
+
+    # Redirect to the venue's page after updating
+    return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
 #  ----------------------------------------------------------------

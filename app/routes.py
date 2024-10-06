@@ -39,19 +39,32 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on venues with partial string search. Ensure it is case-insensitive.
-  # seach for Hop should return "The Musical Hop".
-  # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-  response={
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }
-  return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
+    # Get the search term from the form input (POST request)
+    search_term = request.form.get('search_term', '')
 
+    # Perform a case-insensitive search using SQLAlchemy.
+    # The ilike() function allows for case-insensitive pattern matching.
+    # The '%' symbols are wildcards in SQL, representing any sequence of characters before and after the search term.
+    venues = Venue.query.filter(Venue.name.ilike(f'%{search_term}%')).all()
+
+    # Prepare the response with a list of matching venues.
+    # The 'num_upcoming_shows' is assumed to be a property of the Venue model or calculated elsewhere.
+    response = {
+        "count": len(venues),
+        "data": []
+    }
+
+    # Populate the 'data' list with matching venue details.
+    for venue in venues:
+        response['data'].append({
+            "id": venue.id,
+            "name": venue.name,
+            "num_upcoming_shows": venue.num_upcoming_shows  # Assuming num_upcoming_shows is a calculated field
+        })
+
+    # Render the results in the template, passing the search term and response.
+    return render_template('pages/search_venues.html', results=response, search_term=search_term)
+  
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
 

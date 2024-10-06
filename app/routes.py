@@ -574,17 +574,40 @@ def create_shows():
   form = ShowForm()
   return render_template('forms/new_show.html', form=form)
 
+
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
-  # called to create new shows in the db, upon submitting new show listing form
-  # TODO: insert form data as a new Show record in the db, instead
+    # Instantiate the form with the POST data
+    form = ShowForm()
 
-  # on successful db insert, flash success
-  flash('Show was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Show could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-  return render_template('pages/home.html')
+    # Validate the form submission
+    if form.validate_on_submit():
+        try:
+            # Create a new Show record using form data
+            new_show = Show(
+                artist_id=form.artist_id.data,
+                venue_id=form.venue_id.data,
+                start_time=form.start_time.data
+            )
+            
+            # Add the new show to the database session and commit
+            db.session.add(new_show)
+            db.session.commit()
+
+            # On successful db insert, flash success
+            flash('Show was successfully listed!', 'success')
+        except Exception as e:
+            # On unsuccessful db insert, rollback and flash an error message
+            db.session.rollback()
+            flash(f'An error occurred. Show could not be listed. Error: {str(e)}', 'danger')
+    else:
+        # Flash form validation errors if form is invalid
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"Error in the {field} field: {error}", 'danger')
+
+    # Redirect to the home page or render the home page after the operation
+    return redirect(url_for('index'))  # Or return render_template('pages/home.html') if you want to stay on the home page
 
 @app.errorhandler(404)
 def not_found_error(error):

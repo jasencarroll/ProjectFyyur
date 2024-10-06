@@ -97,7 +97,7 @@ class VenueForm(FlaskForm):
 
     seeking_talent = SelectField(
         'seeking_talent', 
-        validators=[DataRequired()],
+        validators=[Optional()],
         choices=[
             ('Yes', 'Yes'),
             ('No', 'No')

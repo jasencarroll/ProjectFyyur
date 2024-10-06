@@ -17,7 +17,7 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
     genres = db.Column(db.String(120))  # Add genres field
     website_link = db.Column(db.String(120))  # Add website_link field
-    seeking_talent = db.Column(db.Boolean, default=False) 
+    seeking_talent = db.Column(db.Boolean) 
     seeking_description = db.Column(db.String(500))
     # Define the relationship with the Show model
     shows = db.relationship('Show', backref='venue_shows', lazy=True)

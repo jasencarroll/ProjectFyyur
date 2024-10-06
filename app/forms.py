@@ -204,8 +204,8 @@ class ArtistForm(FlaskForm):
     image_link = StringField(
         'image_link', validators=[Optional(), URL()]    # Can chain these
     )
-    website = StringField(
-        'website', validators=[Optional(), URL()]
+    website_link = StringField(
+        'website_link', validators=[Optional(), URL()]
     )
     seeking_venue = SelectField(
         'seeking_venue', validators=[DataRequired()],

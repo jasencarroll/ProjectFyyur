@@ -5,6 +5,8 @@ from sqlalchemy import func
 from flask import render_template, request, flash, redirect, url_for, jsonify
 from .forms import *
 from .models import *
+from sqlalchemy.exc import SQLAlchemyError  # To catch any errors during the database transaction
+
 
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -39,6 +41,7 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
+    # TODO: Fix CRSF token
     # Get the search term from the form input (POST request)
     search_term = request.form.get('search_term', '')
 
@@ -206,7 +209,7 @@ def delete_venue(venue_id):
 
     return jsonify({'error': 'Invalid request method.'}), 405
 
-
+# TODO: VENUE EDIT
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -382,15 +385,36 @@ def create_artist_form():
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-  # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+    try:
+        # Create a new artist instance with data from the form
+        new_artist = Artist(
+            name=request.form['name'],
+            city=request.form['city'],
+            state=request.form['state'],
+            phone=request.form['phone'],
+            genre=request.form.getlist('genre'),  # If you're storing genres as a list
+            facebook_link=request.form['facebook_link'],
+            image_link=request.form['image_link'],
+            website_link=request.form['website_link'],
+            seeking_venue=True if request.form.get('seeking_venue') == 'y' else False,
+            seeking_description=request.form['seeking_description']
+        )
 
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-  return render_template('pages/home.html')
+        # Add the new artist to the session
+        db.session.add(new_artist)
+        # Commit the transaction to save the artist in the database
+        db.session.commit()
+
+        # On successful db insert, flash success
+        flash('Artist ' + request.form['name'] + ' was successfully listed!')
+    except SQLAlchemyError as e:
+        # On unsuccessful db insert, rollback the session and flash an error message
+        db.session.rollback()
+        flash(f'An error occurred. Artist {request.form["name"]} could not be listed. Error: {str(e)}')
+
+    finally:
+        # Always return the home page, regardless of success or failure
+        return render_template('pages/home.html')
 
 
 #  Shows

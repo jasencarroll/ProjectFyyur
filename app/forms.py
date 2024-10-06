@@ -212,7 +212,7 @@ class ArtistForm(FlaskForm):
         return value == 'Yes'
 
     seeking_venue = SelectField(
-        'seeking_venue', validators=[DataRequired()],
+        'seeking_venue', validators=[Optional()],
         choices=[
             ('Yes', 'Yes'),
             ('No', 'No')

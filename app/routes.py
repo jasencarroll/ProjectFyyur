@@ -254,6 +254,7 @@ def search_artists():
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
+    form = ArtistForm()
     # Query the artist by ID
     artist = Artist.query.get(artist_id)
     if not artist:
@@ -298,7 +299,7 @@ def show_artist(artist_id):
         "upcoming_shows_count": len(upcoming_shows)
     }
 
-    return render_template('pages/show_artist.html', artist=data)
+    return render_template('pages/show_artist.html', artist=data, form=form)
 #  Update
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
@@ -531,6 +532,39 @@ def create_artist_submission():
 
   return render_template('pages/home.html')
 
+#  Delete Artist
+#  ----------------------------------------------------------------
+@app.route('/artists/<int:artist_id>', methods=['POST'])
+def delete_artist(artist_id):
+    # Check if the request has a _method field and if it equals 'DELETE'
+    if request.form.get('_method') == 'DELETE':
+        try:
+            # Query the artist from the database using the artist_id
+            artist = Artist.query.get(artist_id)
+
+            # If the artist does not exist, return a 404 error
+            if not artist:
+                return jsonify({'error': 'Artist not found.'}), 404
+
+            # Delete the artist from the database
+            db.session.delete(artist)
+            db.session.commit()
+
+            # Return success response after deletion
+            return jsonify({'success': 'Artist deleted successfully.'}), 200
+
+        except Exception as e:
+            # If there's an error, rollback the session and return an error response
+            db.session.rollback()
+            print(f"Error: {str(e)}")
+            return jsonify({'error': 'An error occurred while deleting the artist.'}), 500
+
+        finally:
+            # Ensure the session is closed after the operation
+            db.session.close()
+
+    # If the request method is not 'DELETE', return a 405 error
+    return jsonify({'error': 'Invalid request method.'}), 405
 #  Shows
 #  ----------------------------------------------------------------
 

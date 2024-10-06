@@ -205,14 +205,19 @@ class ArtistForm(FlaskForm):
         'image_link', validators=[Optional(), URL()]    # Can chain these
     )
     website_link = StringField(
-        'website_link', validators=[Optional(), URL()]
+        'website', validators=[Optional(), URL()]
     )
+    def boolean_coerce(value):
+        """Converts 'Yes' to True and 'No' to False."""
+        return value == 'Yes'
+
     seeking_venue = SelectField(
         'seeking_venue', validators=[DataRequired()],
         choices=[
             ('Yes', 'Yes'),
             ('No', 'No')
-        ]
+        ], 
+        coerce=boolean_coerce  # Apply the custom conversion
     )
     seeking_description = StringField(
         'seeking_description', validators=[Optional()]

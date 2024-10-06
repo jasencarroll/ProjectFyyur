@@ -3,6 +3,7 @@
 {% block content %}
   <div class="form-wrapper">
     <form class="form" method="post" action="/artists/{{artist.id}}/edit">
+      {{ form.csrf_token }}
       <h3 class="form-heading">Edit artist <em>{{ artist.name }}</em></h3>
       <div class="form-group">
         <label for="name">Name</label>
@@ -45,7 +46,7 @@
 
       <div class="form-group">
           <label for="seeking_venue">Looking for Venues</label>
-          {{ form.seeking_venue(placeholder='Venue', autofocus = true) }}
+          {{ form.seeking_venue(class_ = 'form-control', autofocus = true) }}
       </div>
 
       <div class="form-group">

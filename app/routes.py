@@ -269,9 +269,9 @@ def show_artist(artist_id):
 
     for show in shows:
         show_data = {
-            "venue_id": show.venue_id,
-            "venue_name": show.venue_shows.name,  # Accessing related venue via backref
-            "venue_image_link": show.venue_shows.image_link,
+            "venue_id": show.venue.id,
+            "venue_name": show.venue.name,  # Accessing related venue via backref
+            "venue_image_link": show.venue.image_link,
             "start_time": show.start_time.strftime("%Y-%m-%dT%H:%M:%S")  # Formatting the time
         }
 

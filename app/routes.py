@@ -1,11 +1,9 @@
-from app import app, db
 import logging
 from logging import Formatter, FileHandler
-from sqlalchemy import func
 from flask import render_template, request, flash, redirect, url_for, jsonify
+from app import app, db
 from .forms import *
 from .models import *
-from sqlalchemy.exc import SQLAlchemyError  # To catch any errors during the database transaction
 
 
 #----------------------------------------------------------------------------#
@@ -22,6 +20,7 @@ def index():
 
 @app.route('/venues')
 def venues():
+    form = VenueForm()
     # Fetch all venues from the database
     all_venues = Venue.query.all()
 
@@ -37,11 +36,11 @@ def venues():
         })
 
     # Convert the dictionary values into a list for rendering
-    return render_template('pages/venues.html', areas=list(data.values()))
+    return render_template('pages/venues.html', areas=list(data.values()), form=form)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-    # TODO: Fix CRSF token
+    form = VenueForm()
     # Get the search term from the form input (POST request)
     search_term = request.form.get('search_term', '')
 
@@ -62,11 +61,11 @@ def search_venues():
         response['data'].append({
             "id": venue.id,
             "name": venue.name,
-            "num_upcoming_shows": venue.num_upcoming_shows  # Assuming num_upcoming_shows is a calculated field
+            #"num_upcoming_shows": venue.num_upcoming_shows  # Assuming num_upcoming_shows is a calculated field
         })
 
     # Render the results in the template, passing the search term and response.
-    return render_template('pages/search_venues.html', results=response, search_term=search_term)
+    return render_template('pages/search_venues.html', results=response, search_term=search_term, form=form)
   
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
@@ -82,7 +81,7 @@ def show_venue(venue_id):
     data = {
         "id": venue.id,
         "name": venue.name,
-        "genres": [ genre for genre in venue.genres ],
+        "genres": venue.genres.split(','),
         "address": venue.address,
         "city": venue.city,
         "state": venue.state,
@@ -189,30 +188,48 @@ def delete_venue(venue_id):
     # Check if the request has a _method field and if it equals 'DELETE'
     if request.form.get('_method') == 'DELETE':
         try:
+            # Query the venue from the database using the venue_id
             venue = Venue.query.get(venue_id)
 
+            # If the venue does not exist, flash an error message and redirect to the venue page
             if not venue:
-                return jsonify({'error': 'Venue not found.'}), 404
+                flash('Venue not found.', 'danger')
+                return redirect(url_for('show_venue', venue_id=venue_id))
+            
+            # Delete all shows associated with the artist
+            shows = Show.query.filter_by(venue_id=venue_id).all()
+            for show in shows:
+                db.session.delete(show)
 
+            # Delete the venue from the database
             db.session.delete(venue)
             db.session.commit()
 
-            return jsonify({'success': 'Venue deleted successfully.'}), 200
+            # Flash a success message and redirect to the venues page after deletion
+            flash('Venue deleted successfully.', 'success')
+            return redirect(url_for('venues'))
 
         except Exception as e:
+            # If there's an error, rollback the session and flash an error message
             db.session.rollback()
+            flash('An error occurred while deleting the venue.', 'danger')
             print(f"Error: {str(e)}")
-            return jsonify({'error': 'An error occurred while deleting the venue.'}), 500
+            # Redirect back to the individual venue page if there's an error
+            return redirect(url_for('show_venue', venue_id=venue_id))
 
         finally:
+            # Ensure the session is closed after the operation
             db.session.close()
 
-    return jsonify({'error': 'Invalid request method.'}), 405
+    # If the request method is not 'DELETE', flash an error message and reload the page
+    flash('Invalid request method.', 'danger')
+    return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Artists
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
+    form = ArtistForm()
     # Query the database to retrieve all artists
     artists = Artist.query.all()
 
@@ -225,10 +242,11 @@ def artists():
         })
 
     # Pass the list of artists to the template
-    return render_template('pages/artists.html', artists=data)
+    return render_template('pages/artists.html', artists=data, form=form)
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
+    form = ArtistForm()
     # Get the search term from the form input
     search_term = request.form.get('search_term', '')
 
@@ -250,7 +268,7 @@ def search_artists():
         })
 
     # Render the search results template
-    return render_template('pages/search_artists.html', results=response, search_term=search_term)
+    return render_template('pages/search_artists.html', results=response, search_term=search_term, form=form)
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
@@ -542,29 +560,39 @@ def delete_artist(artist_id):
             # Query the artist from the database using the artist_id
             artist = Artist.query.get(artist_id)
 
-            # If the artist does not exist, return a 404 error
+            # If the artist does not exist, return a flash message and redirect to the artist page
             if not artist:
-                return jsonify({'error': 'Artist not found.'}), 404
+                flash('Artist not found.', 'danger')
+                return redirect(url_for('show_artist', artist_id=artist_id))
 
+            # Delete all shows associated with the artist
+            shows = Show.query.filter_by(artist_id=artist_id).all()
+            for show in shows:
+                db.session.delete(show)
+                
             # Delete the artist from the database
             db.session.delete(artist)
             db.session.commit()
 
-            # Return success response after deletion
-            return jsonify({'success': 'Artist deleted successfully.'}), 200
+            # Flash a success message and redirect to the artists page after deletion
+            flash('Artist deleted successfully.', 'success')
+            return redirect(url_for('artists'))
 
         except Exception as e:
-            # If there's an error, rollback the session and return an error response
+            # If there's an error, rollback the session and flash an error message
             db.session.rollback()
+            flash('An error occurred while deleting the artist.', 'danger')
             print(f"Error: {str(e)}")
-            return jsonify({'error': 'An error occurred while deleting the artist.'}), 500
+            # Redirect back to the individual artist page if there's an error
+            return redirect(url_for('show_artist', artist_id=artist_id))
 
         finally:
             # Ensure the session is closed after the operation
             db.session.close()
 
-    # If the request method is not 'DELETE', return a 405 error
-    return jsonify({'error': 'Invalid request method.'}), 405
+    # If the request method is not 'DELETE', flash an error message and reload the page
+    flash('Invalid request method.', 'danger')
+    return redirect(url_for('show_artist', artist_id=artist_id))
 #  Shows
 #  ----------------------------------------------------------------
 

@@ -5,6 +5,7 @@ from app import db
 #----------------------------------------------------------------------------#
 
 class Venue(db.Model):
+    """Venue modelk for the database"""  
     __tablename__ = 'Venue'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -21,11 +22,11 @@ class Venue(db.Model):
     seeking_description = db.Column(db.String(500))
     # Define the relationship with the Show model
     shows = db.relationship('Show', backref='venue', lazy=True)
-    
-    def __repr__(self): 
-        return f'<Venue {self.id} {self.name}>' 
+    def __repr__(self):
+        return f'<Venue {self.id} {self.name}>'
 
 class Artist(db.Model):
+    """Artist modelk for the database"""
     __tablename__ = 'Artist'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -47,6 +48,7 @@ class Artist(db.Model):
 
 
 class Show(db.Model):
+    """Show model for the database"""
     __tablename__ = 'Show'
 
     id = db.Column(db.Integer, primary_key=True)

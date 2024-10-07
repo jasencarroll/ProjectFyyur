@@ -1,6 +1,6 @@
 import logging
 from logging import Formatter, FileHandler
-from flask import render_template, request, flash, redirect, url_for, jsonify
+from flask import render_template, request, flash, redirect, url_for
 from app import app, db
 from .forms import *
 from .models import *

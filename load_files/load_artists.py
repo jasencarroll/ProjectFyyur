@@ -5,15 +5,15 @@ from psycopg2.extras import execute_values
 conn = psycopg2.connect(
     host="localhost",
     database="fyyur",
-    user="your_username",  # replace with your actual PostgreSQL username
-    password="your_password"  # replace with your actual PostgreSQL password
+    user="postgres",  # replace with your actual PostgreSQL username
+    password="admin"  # replace with your actual PostgreSQL password
 )
 
 # Create a cursor object to interact with the database
 cur = conn.cursor()
 
 # Fake artist data
-artists_data = [
+artist_data = [
     {
         "id": 4,
         "name": "Guns N Petals",
@@ -21,7 +21,7 @@ artists_data = [
         "city": "San Francisco",
         "state": "CA",
         "phone": "326-123-5000",
-        "website": "https://www.gunsnpetalsband.com",
+        "website_link": "https://www.gunsnpetalsband.com",
         "facebook_link": "https://www.facebook.com/GunsNPetals",
         "seeking_venue": True,
         "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
@@ -34,7 +34,7 @@ artists_data = [
         "city": "New York",
         "state": "NY",
         "phone": "300-400-5000",
-        "website": None,  # No website provided for this artist
+        "website_link": None,  # No website provided for this artist
         "facebook_link": "https://www.facebook.com/mattquevedo923251523",
         "seeking_venue": False,
         "seeking_description": None,
@@ -47,7 +47,7 @@ artists_data = [
         "city": "San Francisco",
         "state": "CA",
         "phone": "432-325-5432",
-        "website": None,  # No website provided for this artist
+        "website_link": None,  # No website provided for this artist
         "facebook_link": None,  # No Facebook link provided for this artist
         "seeking_venue": False,
         "seeking_description": None,
@@ -57,8 +57,8 @@ artists_data = [
 
 # Define the SQL query for inserting the data
 insert_query = """
-INSERT INTO artists (
-    id, name, genres, city, state, phone, website, facebook_link, seeking_venue, seeking_description, image_link
+INSERT INTO public."Artist" (
+    id, name, genres, city, state, phone, website_link, facebook_link, seeking_venue, seeking_description, image_link
 ) VALUES %s
 ON CONFLICT (id) DO NOTHING;
 """
@@ -72,13 +72,13 @@ artist_values = [
         artist["city"],
         artist["state"],
         artist["phone"],
-        artist["website"],
+        artist["website_link"],
         artist["facebook_link"],
         artist["seeking_venue"],
         artist["seeking_description"],
         artist["image_link"]
     )
-    for artist in artists_data
+    for artist in artist_data
 ]
 
 # Use execute_values to insert all artists in one batch

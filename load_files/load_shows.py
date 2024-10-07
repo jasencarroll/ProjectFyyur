@@ -6,8 +6,8 @@ from datetime import datetime
 conn = psycopg2.connect(
     host="localhost",
     database="fyyur",
-    user="your_username",  # replace with your actual PostgreSQL username
-    password="your_password"  # replace with your actual PostgreSQL password
+    user="postgres",  # replace with your actual PostgreSQL username
+    password="admin"  # replace with your actual PostgreSQL password
 )
 
 # Create a cursor object to interact with the database
@@ -44,7 +44,7 @@ shows_data = [
 
 # Define the SQL query for inserting the show data
 insert_query = """
-INSERT INTO shows (venue_id, artist_id, start_time)
+INSERT INTO public."Show" (venue_id, artist_id, start_time)
 VALUES %s;
 """
 

@@ -5,8 +5,8 @@ from psycopg2.extras import execute_values
 conn = psycopg2.connect(
     host="localhost",
     database="fyyur",
-    user="your_username",  # replace with your actual PostgreSQL username
-    password="your_password"  # replace with your actual PostgreSQL password
+    user="postgres",  # replace with your actual PostgreSQL username
+    password="admin"  # replace with your actual PostgreSQL password
 )
 
 # Create a cursor object to interact with the database
@@ -22,7 +22,7 @@ venues_data = [
         "city": "San Francisco",
         "state": "CA",
         "phone": "123-123-1234",
-        "website": "https://www.themusicalhop.com",
+        "website_link": "https://www.themusicalhop.com",
         "facebook_link": "https://www.facebook.com/TheMusicalHop",
         "seeking_talent": True,
         "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
@@ -36,7 +36,7 @@ venues_data = [
         "city": "New York",
         "state": "NY",
         "phone": "914-003-1132",
-        "website": "https://www.theduelingpianos.com",
+        "website_link": "https://www.theduelingpianos.com",
         "facebook_link": "https://www.facebook.com/theduelingpianos",
         "seeking_talent": False,
         "seeking_description": None,
@@ -50,7 +50,7 @@ venues_data = [
         "city": "San Francisco",
         "state": "CA",
         "phone": "415-000-1234",
-        "website": "https://www.parksquarelivemusicandcoffee.com",
+        "website_link": "https://www.parksquarelivemusicandcoffee.com",
         "facebook_link": "https://www.facebook.com/ParkSquareLiveMusicAndCoffee",
         "seeking_talent": False,
         "seeking_description": None,
@@ -60,8 +60,8 @@ venues_data = [
 
 # Define the SQL query for inserting the data
 insert_query = """
-INSERT INTO venues (
-    id, name, genres, address, city, state, phone, website, facebook_link, seeking_talent, seeking_description, image_link
+INSERT INTO public."Venue" (
+    id, name, genres, address, city, state, phone, website_link, facebook_link, seeking_talent, seeking_description, image_link
 ) VALUES %s
 ON CONFLICT (id) DO NOTHING;
 """
@@ -76,7 +76,7 @@ venue_values = [
         venue["city"],
         venue["state"],
         venue["phone"],
-        venue["website"],
+        venue["website_link"],
         venue["facebook_link"],
         venue["seeking_talent"],
         venue["seeking_description"],

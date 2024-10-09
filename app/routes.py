@@ -87,24 +87,7 @@ def show_venue(venue_id):
         return render_template('errors/404.html'), 404  # If venue not found
 
     # Collect data to pass to the template (including past/upcoming shows)
-    data = {
-        "id": venue.id,
-        "name": venue.name,
-        "genres": venue.genres,
-        "address": venue.address,
-        "city": venue.city,
-        "state": venue.state,
-        "phone": venue.phone,
-        "website": venue.website_link,
-        "facebook_link": venue.facebook_link,
-        "seeking_talent": venue.seeking_talent,
-        "seeking_description": venue.seeking_description,
-        "image_link": venue.image_link,
-        "past_shows": [],
-        "upcoming_shows": [],
-        "past_shows_count": 0,
-        "upcoming_shows_count": 0,
-    }
+    data = venue
     
     # Query and add past and upcoming shows (assuming a Show model exists)
     past_shows = []

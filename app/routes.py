@@ -87,7 +87,7 @@ def show_venue(venue_id):
         return render_template('errors/404.html'), 404  # If venue not found
 
     # Collect data to pass to the template (including past/upcoming shows)
-    data = venue
+    data = vars(venue)
     
     # Query and add past and upcoming shows (assuming a Show model exists)
     past_shows = []
@@ -138,7 +138,7 @@ def create_venue_submission():
         state=form.state.data,
         address=form.address.data,
         phone=form.phone.data,
-        genres=','.join(form.genres.data),  # Convert list of genres to a comma-separated string
+        genres=form.genres.data,  # Convert list of genres to a comma-separated string
         facebook_link=form.facebook_link.data,
         image_link=form.image_link.data,
         website_link=form.website_link.data,
@@ -270,6 +270,8 @@ def show_artist(artist_id):
     if not artist:
         return render_template('errors/404.html'), 404  # Handle case where artist doesn't exist
 
+    data = vars(artist)
+    
     # Query the past and upcoming shows for this artist
     past_shows = []
     upcoming_shows = []
@@ -289,10 +291,11 @@ def show_artist(artist_id):
             past_shows.append(show_data)
         else:
             upcoming_shows.append(show_data)
-
-    # Prepare the data dictionary to pass to the template
-    data = artist
-
+    data["past_shows"] = past_shows
+    data["upcoming_shows"] = upcoming_shows
+    data["past_shows_count"] = len(past_shows)
+    data["upcoming_shows_count"] = len(upcoming_shows)
+    
     return render_template('pages/show_artist.html', artist=data, form=form)
 #  Update
 #  ----------------------------------------------------------------
@@ -445,7 +448,7 @@ def edit_venue_submission(venue_id):
             venue.state = form.state.data
             venue.address = form.address.data
             venue.phone = form.phone.data
-            venue.genres = ','.join(form.genres.data)  # Assuming genres are stored as a comma-separated string
+            venue.genres = form.genres.data  # Assuming genres are stored as a comma-separated string
             venue.facebook_link = form.facebook_link.data
             venue.image_link = form.image_link.data
             venue.website_link = form.website_link.data

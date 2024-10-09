@@ -75,8 +75,8 @@ To run this project locally, follow the steps below:
    Create and activate a Python virtual environment:
    
    ```bash
-   python -m virtualenv env
-   source env/bin/activate  # On Windows: source env/Scripts/activate
+   python -m virtualenv .venv
+   source .venv/bin/activate  # On Windows: source .venv/Scripts/activate
    ```
 
 3. **Install Dependencies**
@@ -105,19 +105,9 @@ To run this project locally, follow the steps below:
 
 6. **Run the Application**
 
-   Set environment variables and start the development server:
+   The environment variables are set in .flaskenv, and start the development server:
    
    ```bash
-   export FLASK_APP=app.py
-   export FLASK_ENV=development
-   flask run
-   ```
-
-   Alternatively, for Windows:
-   
-   ```bash
-   set FLASK_APP=app.py
-   set FLASK_ENV=development
    flask run
    ```
 

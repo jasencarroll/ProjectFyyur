@@ -313,7 +313,7 @@ def edit_artist(artist_id):
         city=artist.city,
         state=artist.state,
         phone=artist.phone,
-        genres=artist.genres.split(','),  # Assuming genres are stored as a comma-separated string
+        genres=artist.genres,  # Assuming genres are stored as a comma-separated string
         facebook_link=artist.facebook_link,
         image_link=artist.image_link,
         website_link=artist.website_link,
@@ -325,7 +325,7 @@ def edit_artist(artist_id):
     artist_data = {
         "id": artist.id,
         "name": artist.name,
-        "genres": artist.genres.split(','),
+        "genres": artist.genres
         "city": artist.city,
         "state": artist.state,
         "phone": artist.phone,
@@ -360,7 +360,7 @@ def edit_artist_submission(artist_id):
             artist.city = form.city.data
             artist.state = form.state.data
             artist.phone = form.phone.data
-            artist.genres = ','.join(form.genres.data)  # Assuming genres are stored as a comma-separated string
+            artist.genres = form.genres.data  # Assuming genres are stored as a comma-separated string
             artist.facebook_link = form.facebook_link.data
             artist.image_link = form.image_link.data
             artist.website_link = form.website_link.data
@@ -397,7 +397,7 @@ def edit_venue(venue_id):
     # Pre-populate the form with the venue's data
     form = VenueForm(
         name=venue.name,
-        genres=venue.genres.split(','),  # Assuming genres are stored as a comma-separated string
+        genres=venue.genres,  # Assuming genres are stored as a comma-separated string
         address=venue.address,
         city=venue.city,
         state=venue.state,
@@ -413,7 +413,7 @@ def edit_venue(venue_id):
     venue_data = {
         "id": venue.id,
         "name": venue.name,
-        "genres": venue.genres.split(','),  # Convert genres string to a list
+        "genres": venue.genres,  # Convert genres string to a list
         "address": venue.address,
         "city": venue.city,
         "state": venue.state,
@@ -493,7 +493,7 @@ def create_artist_submission():
         city=form.city.data,
         state=form.state.data,
         phone=form.phone.data,
-        genres=','.join(form.genres.data),  # Convert list of genres to a comma-separated string
+        genres=form.genres.data,  # Convert list of genres to a comma-separated string
         facebook_link=form.facebook_link.data,
         image_link=form.image_link.data,
         website_link=form.website_link.data,

@@ -325,7 +325,7 @@ def edit_artist(artist_id):
     artist_data = {
         "id": artist.id,
         "name": artist.name,
-        "genres": artist.genres
+        "genres": artist.genres,
         "city": artist.city,
         "state": artist.state,
         "phone": artist.phone,
